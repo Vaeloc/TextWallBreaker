@@ -13,6 +13,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Slider;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -23,16 +24,18 @@ import javafx.stage.Stage;
 
 public class TextWallBreaker extends Application {
 
+	// Declare the UI components
 	TextArea userInput;
 	Button submitBtn;
 	Button browseFile;
+	Slider sentencesPerParagraph;
+
+	// Declare the pathname and bufferedScanner for handling files
 	String pathname;
 	Scanner bufferedScanner;
 
 	public static void main(String[] args) {
-
 		launch(args);
-
 	}
 
 	@Override
@@ -57,6 +60,18 @@ public class TextWallBreaker extends Application {
 		userInput = new TextArea();
 		userInput.setWrapText(true);
 		grid.add(userInput, 0, 1, 2, 2);
+
+		sentencesPerParagraph = new Slider();
+		sentencesPerParagraph.setMin(1);
+		sentencesPerParagraph.setMax(10);
+		sentencesPerParagraph.setValue(5);
+		sentencesPerParagraph.setBlockIncrement(1);
+		sentencesPerParagraph.setShowTickLabels(true);
+		sentencesPerParagraph.setSnapToTicks(true);
+		sentencesPerParagraph.setMajorTickUnit(1);
+		sentencesPerParagraph.setMaxWidth(340);
+		sentencesPerParagraph.setMinorTickCount(0);
+		grid.add(sentencesPerParagraph, 1, 5, 3, 3);
 
 
 		submitBtn = new Button("Submit");
@@ -107,6 +122,13 @@ public class TextWallBreaker extends Application {
         primaryStage.show();
     }
 
+	/**
+	 * Takes a Scanner object and loops through loops through it
+	 * adding while appending the text to a StringBuilder object.
+	 *
+	 * Once bufferedScanner.hasNextLine() returns false, the method
+	 * returns the StringBuilder object.
+	 */
 	private StringBuilder extractText(Scanner bufferedScanner) {
 		StringBuilder extractedText = new StringBuilder();
 
@@ -120,7 +142,6 @@ public class TextWallBreaker extends Application {
 
 	private void breakUpText(Scanner bufferedScanner) {
 		userInput.setText(extractText(bufferedScanner).toString());
-		breakUpText();
 	}
 
 	private void breakUpText() {

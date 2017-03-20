@@ -1,5 +1,10 @@
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.util.Scanner;
+
+import javax.swing.JFileChooser;
 
 import javafx.application.Application;
 import javafx.event.ActionEvent;
@@ -11,7 +16,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
@@ -22,6 +26,8 @@ public class TextWallBreaker extends Application {
 	TextArea userInput;
 	Button submitBtn;
 	Button browseFile;
+	String pathname;
+	Scanner bufferedScanner;
 
 	public static void main(String[] args) {
 
@@ -32,6 +38,8 @@ public class TextWallBreaker extends Application {
 	@Override
     public void start(Stage primaryStage) {
         primaryStage.setTitle("TextWall Breaker");
+
+        pathname = null;
 
         GridPane grid = new GridPane();
 		grid.setAlignment(Pos.CENTER);
@@ -71,10 +79,49 @@ public class TextWallBreaker extends Application {
 			}
 		});
 
+		browseFile.setOnAction(new EventHandler<ActionEvent>() {
+
+			@Override
+			public void handle(ActionEvent e) {
+				JFileChooser fileChooser = new JFileChooser();
+
+				int returnVal = fileChooser.showOpenDialog(fileChooser);
+
+				if(returnVal == JFileChooser.APPROVE_OPTION) {
+					File aFile = fileChooser.getSelectedFile();
+					try {
+						bufferedScanner = new Scanner(new BufferedReader(new FileReader(aFile)));
+						breakUpText(bufferedScanner);
+					}
+					catch (Exception anException) {
+						System.out.println("Error: " + anException);
+					}
+
+				}
+			}
+
+		});
+
 		Scene scene = new Scene(grid, 600, 375);
 		primaryStage.setScene(scene);
         primaryStage.show();
     }
+
+	private StringBuilder extractText(Scanner bufferedScanner) {
+		StringBuilder extractedText = new StringBuilder();
+
+		while(bufferedScanner.hasNextLine()) {
+			extractedText.append(bufferedScanner.nextLine());
+		}
+
+		return extractedText;
+	}
+
+
+	private void breakUpText(Scanner bufferedScanner) {
+		userInput.setText(extractText(bufferedScanner).toString());
+		breakUpText();
+	}
 
 	private void breakUpText() {
 		String text = userInput.getText();

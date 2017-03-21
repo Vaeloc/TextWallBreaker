@@ -30,8 +30,7 @@ public class TextWallBreaker extends Application {
 	Button browseFile;
 	Slider sentencesPerParagraph;
 
-	// Declare the pathname and bufferedScanner for handling files
-	String pathname;
+	// Declare the bufferedScanner for handling files
 	Scanner bufferedScanner;
 
 	public static void main(String[] args) {
@@ -40,10 +39,10 @@ public class TextWallBreaker extends Application {
 
 	@Override
     public void start(Stage primaryStage) {
+		// Set stage title
         primaryStage.setTitle("TextWall Breaker");
 
-        pathname = null;
-
+        // Create the grid layout
         GridPane grid = new GridPane();
 		grid.setAlignment(Pos.CENTER);
 		grid.setHgap(10);
@@ -57,10 +56,12 @@ public class TextWallBreaker extends Application {
 		// Adds sceneTitle at column 0, row 0, with column span 2 and row span 1
 		grid.add(sceneTitle, 0, 0, 2, 1);
 
+		// Create TextArea to hold text to break
 		userInput = new TextArea();
 		userInput.setWrapText(true);
 		grid.add(userInput, 0, 1, 2, 2);
 
+		// Create Slider so customise paragraph length
 		sentencesPerParagraph = new Slider();
 		sentencesPerParagraph.setMin(1);
 		sentencesPerParagraph.setMax(10);
@@ -73,19 +74,21 @@ public class TextWallBreaker extends Application {
 		sentencesPerParagraph.setMinorTickCount(0);
 		grid.add(sentencesPerParagraph, 1, 5, 3, 3);
 
-
+		// Create Button to submit text for breaking
 		submitBtn = new Button("Submit");
 		HBox hSubmitButton = new HBox(10);
 		hSubmitButton.setAlignment(Pos.BOTTOM_RIGHT);
 		hSubmitButton.getChildren().add(submitBtn);
 		grid.add(hSubmitButton, 1, 4);
 
+		// Create Button to allow user to import file
 		browseFile = new Button("Browse...");
 		HBox hBrowseFile = new HBox(10);
 		hBrowseFile.setAlignment(Pos.BOTTOM_LEFT);
 		hBrowseFile.getChildren().add(browseFile);
 		grid.add(hBrowseFile, 0, 4);
 
+		// Submit Button listener to trigger text breaking
 		submitBtn.setOnAction(new EventHandler<ActionEvent>() {
 
 			@Override
@@ -94,10 +97,12 @@ public class TextWallBreaker extends Application {
 			}
 		});
 
+		// BrowseFile Button to open File Chooser
 		browseFile.setOnAction(new EventHandler<ActionEvent>() {
 
 			@Override
 			public void handle(ActionEvent e) {
+				// Creat FileChooser to let user import files
 				JFileChooser fileChooser = new JFileChooser();
 
 				int returnVal = fileChooser.showOpenDialog(fileChooser);
@@ -105,11 +110,16 @@ public class TextWallBreaker extends Application {
 				if(returnVal == JFileChooser.APPROVE_OPTION) {
 					File aFile = fileChooser.getSelectedFile();
 					try {
+						// Create Scanner object to read the file
 						bufferedScanner = new Scanner(new BufferedReader(new FileReader(aFile)));
-						breakUpText(bufferedScanner);
+						initialiseFileText(bufferedScanner);
 					}
 					catch (Exception anException) {
 						System.out.println("Error: " + anException);
+					}
+					finally {
+						// Close the reader stream
+						bufferedScanner.close();
 					}
 
 				}
@@ -117,6 +127,7 @@ public class TextWallBreaker extends Application {
 
 		});
 
+		// Create scene and set the stage
 		Scene scene = new Scene(grid, 600, 375);
 		primaryStage.setScene(scene);
         primaryStage.show();
@@ -130,23 +141,39 @@ public class TextWallBreaker extends Application {
 	 * returns the StringBuilder object.
 	 */
 	private StringBuilder extractText(Scanner bufferedScanner) {
+		// Create StringBuilder object to store file text
 		StringBuilder extractedText = new StringBuilder();
 
+		// While there is text remaining in the file,
+		// add it to the StringBuilder
 		while(bufferedScanner.hasNextLine()) {
 			extractedText.append(bufferedScanner.nextLine());
 		}
 
+		// Return the StringBuilder containing file text
 		return extractedText;
 	}
 
 
-	private void breakUpText(Scanner bufferedScanner) {
+	/**
+	 * Takes a Scanner object and passes it to the
+	 * extractText() method and sets the userInput TextArea
+	 * text to the returned StringBuilder object from extractText().
+	 */
+	private void initialiseFileText(Scanner bufferedScanner) {
 		userInput.setText(extractText(bufferedScanner).toString());
 	}
 
+	/**
+	 * Iterates over the text in the userInput TextArea and
+	 * adds new lines after every number of sentences specified
+	 * by the slider bar.
+	 */
 	private void breakUpText() {
+		// Sets the value of text to the text that is in the userInput TextArea.
 		String text = userInput.getText();
-		int sentences = 5;
+		// Set the number of sentences per paragraph to the value of the Slider bar.
+		int sentences = (int) sentencesPerParagraph.getValue();
 		int sentenceCount = 0;
 
 		for (int i = 0; i < text.length(); i++) {
@@ -155,10 +182,16 @@ public class TextWallBreaker extends Application {
 			if (String.valueOf(c).equals(".")) {
 				sentenceCount++;
 
-				if (sentenceCount == sentences && !String.valueOf(text.charAt(i + 2)).equals("\n")) {
-					sentenceCount = 0;
-					text = new StringBuilder(text).insert(i + 2, "\n\n").toString();
-					userInput.setText(text);
+				try {
+					if (sentenceCount == sentences && !String.valueOf(text.charAt(i + 2)).equals("\n")) {
+						sentenceCount = 0;
+						text = new StringBuilder(text).insert(i + 2, "\n\n").toString();
+						userInput.setText(text);
+					}
+				}
+				catch (StringIndexOutOfBoundsException error) {
+					System.out.println("Error: " + error);
+					error.printStackTrace();
 				}
 			}
 		}
